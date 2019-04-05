@@ -104,7 +104,7 @@ var ClassAttack = {
 		needRepair = Town.needRepair();
 
 		if (needRepair && needRepair.length > 0) { // Repair check, mainly to restock arrows
-			Town.visitTown();
+			Town.visitTown(true);
 		}
 
 		this.lightFuryTick = 0;
