@@ -12,6 +12,8 @@ var Attack = {
 	init: function () {
 		if (Config.Wereform) {
 			include("common/Attacks/wereform.js");
+		} else if (Config.Enchantress) {
+			include("common/Attacks/Enchantress.js");
 		} else {
 			include("common/Attacks/" + this.classes[me.classid] + ".js");
 		}
@@ -248,6 +250,7 @@ var Attack = {
 			}
 
 			if (Config.Dodge && me.hp * 100 / me.hpmax <= Config.DodgeHP) {
+				me.overhead("ahhhhgahhhhhaggahhh!!!");
 				this.deploy(target, Config.DodgeRange, 5, 9);
 			}
 
@@ -432,7 +435,9 @@ var Attack = {
 			}
 
 			if (!boss) {
-				throw new Error("Attack.clear: " + bossId + " not found");
+				print("Attack.clear: " + bossId + " not found");
+				return false;
+				
 			}
 
 			orgx = boss.x;
@@ -476,6 +481,7 @@ var Attack = {
 
 			if (target.x !== undefined && (getDistance(target, orgx, orgy) <= range || (this.getScarinessLevel(target) > 7 && getDistance(me, target) <= range)) && this.checkMonster(target)) {
 				if (Config.Dodge && me.hp * 100 / me.hpmax <= Config.DodgeHP) {
+					me.overhead("aieeeeee!!");
 					this.deploy(target, Config.DodgeRange, 5, 9);
 				}
 
@@ -648,6 +654,7 @@ var Attack = {
 
 			if (target.x !== undefined && this.checkMonster(target)) {
 				if (Config.Dodge && me.hp * 100 / me.hpmax <= Config.DodgeHP) {
+					me.overhead("gahhhaaaaaa!!!");
 					this.deploy(target, Config.DodgeRange, 5, 9);
 				}
 

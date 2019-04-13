@@ -66,7 +66,7 @@ var Town = {
 	],
 
 	// Do town chores
-	doChores: function (repair = false) {
+	doChores: function () {
 		if (!me.inTown) {
 			this.goToTown();
 		}
@@ -81,6 +81,9 @@ var Town = {
 		Mercenary.hire(Config.UseMerc);
 		this.identify();
 		this.shopItems();
+		Item.autoEquip();
+		Item.autoEquipMerc();
+		this.clearInventory();
 		this.fillTome(518);
 
 		if (Config.FieldID) {
@@ -88,10 +91,8 @@ var Town = {
 		}
 
 		this.buyPotions();
-		this.clearInventory();
-		Item.autoEquip();
 		this.buyKeys();
-		this.repair(repair);
+		this.repair();
 		this.gamble();
 		Cubing.doCubing();
 		Runewords.makeRunewords();
@@ -524,7 +525,7 @@ var Town = {
 		// Avoid unnecessary NPC visits
 		for (i = 0; i < list.length; i += 1) {
 			// Only unid items or sellable junk (low level) should trigger a NPC visit
-			if ((!list[i].getFlag(0x10) || Config.LowGold > 0) && ([-1, 4].indexOf(Pickit.checkItem(list[i]).result) > -1 || (!list[i].getFlag(0x10) && Item.hasTier(list[i])))) {
+			if ((!list[i].getFlag(0x10) || Config.LowGold > 0) && ([-1, 4].indexOf(Pickit.checkItem(list[i]).result) > -1 || (!list[i].getFlag(0x10) && (Item.hasTier(list[i]) || Item.hasMercTier(list[i]))))) {
 				break;
 			}
 		}
@@ -553,7 +554,7 @@ MainLoop:
 				result = Pickit.checkItem(item);
 
 				// Force ID for unid items matching autoEquip criteria
-				if (result.result === 1 && !item.getFlag(0x10) && Item.hasTier(item)) {
+				if (result.result === 1 && !item.getFlag(0x10) && (Item.hasTier(item) || Item.hasMercTier(item))) {
 					result.result = -1;
 				}
 
@@ -601,14 +602,14 @@ MainLoop:
 
 					result = Pickit.checkItem(item);
 
-					if (!Item.autoEquipCheck(item)) {
+					if (!Item.autoEquipCheck(item) || !Item.autoEquipCheckMerc(item)) {
 						result.result = 0;
 					}
 
 					switch (result.result) {
 					case 1:
 						// Couldn't id autoEquip item. Don't log it.
-						if (result.result === 1 && Config.AutoEquip && !item.getFlag(0x10) && Item.autoEquipCheck(item)) {
+						if (result.result === 1 && Config.AutoEquip && !item.getFlag(0x10) && (Item.autoEquipCheck(item) || Item.autoEquipCheckMerc(item))) {
 							break;
 						}
 
@@ -704,7 +705,7 @@ MainLoop:
 			for (i = 0; i < unids.length; i += 1) {
 				result = Pickit.checkItem(unids[i]);
 
-				if (!Item.autoEquipCheck(unids[i])) {
+				if (!Item.autoEquipCheck(unids[i]) || !Item.autoEquipCheckMerc(unids[i])) {
 					result = 0;
 				}
 
@@ -748,7 +749,7 @@ MainLoop:
 			result = Pickit.checkItem(item);
 
 			// Force ID for unid items matching autoEquip criteria
-			if (result.result === 1 && !item.getFlag(0x10) && Item.hasTier(item)) {
+			if (result.result === 1 && !item.getFlag(0x10) && (Item.hasTier(item) || Item.hasMercTier(item))) {
 				result.result = -1;
 			}
 
@@ -758,7 +759,7 @@ MainLoop:
 
 				result = Pickit.checkItem(item);
 
-				if (!Item.autoEquipCheck(item)) {
+				if (!Item.autoEquipCheck(item) || !Item.autoEquipCheckMerc(item)) {
 					result.result = 0;
 				}
 
@@ -902,7 +903,7 @@ CursorLoop:
 		for (i = 0; i < items.length; i += 1) {
 			result = Pickit.checkItem(items[i]);
 
-			if (result.result === 1 && Item.autoEquipCheck(items[i])) {
+			if (result.result === 1 && (Item.autoEquipCheck(items[i]) || Item.autoEquipCheckMerc(items[i]))) {
 				try {
 					if (Storage.Inventory.CanFit(items[i]) && me.getStat(14) + me.getStat(15) >= items[i].getItemCost(0)) {
 						Misc.itemLogger("Shopped", items[i]);
@@ -994,7 +995,7 @@ CursorLoop:
 					if (newItem) {
 						result = Pickit.checkItem(newItem);
 
-						if (!Item.autoEquipCheck(newItem)) {
+						if (!Item.autoEquipCheck(newItem) || !Item.autoEquipCheckMerc(newItem)) {
 							result = 0;
 						}
 
@@ -1256,16 +1257,12 @@ CursorLoop:
 		return false;
 	},
 
-	repair: function (force = false) {
+	repair: function () {
 		var i, quiver, myQuiver, npc, repairAction, bowCheck;
 
 		this.cubeRepair();
 
 		repairAction = this.needRepair();
-
-		if (force && repairAction.indexOf("repair") === -1) {
-			repairAction.push("repair");
-		}
 
 		if (!repairAction || !repairAction.length) {
 			return true;
@@ -1372,30 +1369,28 @@ CursorLoop:
 		if (item) {
 			do {
 				if (!item.getFlag(0x400000)) { // Skip ethereal items
-					if (!item.getStat(152)) { // Skip indestructible items
-						switch (item.itemType) {
-						// Quantity check
-						case 42: // Throwing knives
-						case 43: // Throwing axes
-						case 44: // Javelins
-						case 87: // Amazon javelins
-							quantity = item.getStat(70);
+					switch (item.itemType) {
+					// Quantity check
+					case 42: // Throwing knives
+					case 43: // Throwing axes
+					case 44: // Javelins
+					case 87: // Amazon javelins
+						quantity = item.getStat(70);
 
-							if (typeof quantity === "number" && quantity * 100 / (getBaseStat("items", item.classid, "maxstack") + item.getStat(254)) <= repairPercent) { // Stat 254 = increased stack size
-								itemList.push(copyUnit(item));
-							}
-
-							break;
-						// Durability check
-						default:
-							durability = item.getStat(72);
-
-							if (typeof durability === "number" && durability * 100 / item.getStat(73) <= repairPercent) {
-								itemList.push(copyUnit(item));
-							}
-
-							break;
+						if (typeof quantity === "number" && quantity * 100 / (getBaseStat("items", item.classid, "maxstack") + item.getStat(254)) <= repairPercent) { // Stat 254 = increased stack size
+							itemList.push(copyUnit(item));
 						}
+
+						break;
+					// Durability check
+					default:
+						durability = item.getStat(72);
+
+						if (typeof durability === "number" && durability * 100 / item.getStat(73) <= repairPercent) {
+							itemList.push(copyUnit(item));
+						}
+
+						break;
 					}
 
 					if (chargedItems) {
@@ -1442,7 +1437,7 @@ CursorLoop:
 
 		me.cancel();
 
-		var i, result, tier,
+		var i, result, tier, merctier,items,
 			items = Storage.Inventory.Compare(Config.Inventory);
 
 		if (items) {
@@ -1453,8 +1448,9 @@ CursorLoop:
 					// Don't stash low tier autoequip items.
 					if (Config.AutoEquip && Pickit.checkItem(items[i]).result === 1) {
 						tier = NTIP.GetTier(items[i]);
+						merctier = NTIP.GetMercTier(items[i]);
 
-						if (tier > 0 && tier < 100) {
+						if ((tier > 0 && tier < 100) || (merctier > 0 && merctier < 100)) {
 							result = false;
 						}
 					}
@@ -1822,9 +1818,9 @@ CursorLoop:
 					!CraftingSystem.keepItem(items[i]) // Don't throw crafting system ingredients
 					) {
 				result = Pickit.checkItem(items[i]).result;
-
-				if (!Item.autoEquipCheck(items[i])) {
-					result = 0;
+				
+				if (!Item.autoEquipCheck(items[i]) || !Item.autoEquipCheckMerc(items[i])) {
+					result = 4;
 				}
 
 				switch (result) {
@@ -2069,6 +2065,8 @@ CursorLoop:
 				throw new Error("Town.goToTown: Failed to take TP");
 			}
 		}
+		else
+			me.cancel();
 
 		if (act === undefined) {
 			return true;
@@ -2089,7 +2087,7 @@ CursorLoop:
 		return true;
 	},
 
-	visitTown: function (repair = false) {
+	visitTown: function () {
 		if (me.inTown) {
 			this.doChores();
 			this.move("stash");
@@ -2106,7 +2104,7 @@ CursorLoop:
 			return false;
 		}
 
-		this.doChores(repair);
+		this.doChores();
 
 		if (me.act !== preAct) {
 			this.goToTown(preAct);

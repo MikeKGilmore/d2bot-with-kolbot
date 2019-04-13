@@ -118,8 +118,11 @@ var Pickit = {
 					(Pather.useTeleport() || me.inTown || !checkCollision(me, pickList[0], 0x1))) { // Don't pick items behind walls/obstacles when walking
 				// Check if the item should be picked
 				status = this.checkItem(pickList[0]);
+				
+				if ([4, 22, 76, 77, 78].indexOf(pickList[0].itemType) === -1)
+					print(pickList[0].name + ": " + status.result);
 
-				if (status.result && this.canPick(pickList[0]) && Item.autoEquipCheck(pickList[0])) {
+				if (status.result && this.canPick(pickList[0]) && (Item.autoEquipCheck(pickList[0]) || Item.autoEquipCheckMerc(pickList[0]))) {
 					// Override canFit for scrolls, potions and gold
 					canFit = Storage.Inventory.CanFit(pickList[0]) || [4, 22, 76, 77, 78].indexOf(pickList[0].itemType) > -1;
 
