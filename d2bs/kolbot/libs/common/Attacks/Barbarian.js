@@ -61,7 +61,7 @@ var ClassAttack = {
 		needRepair = Town.needRepair();
 
 		if (needRepair && needRepair.length > 0) { // Repair check
-			Town.visitTown(true);
+			Town.visitTown();
 		}
 
 		if (pickit) {
