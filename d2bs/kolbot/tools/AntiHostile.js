@@ -27,7 +27,7 @@ include("common/Town.js");
 
 function main() {
 	// Variables and functions
-	var player, attackCount, prevPos, check, missile, outside,
+	var player, attackCount, prevPos, check, missile,
 		charClass = ["Amazon", "Sorceress", "Necromancer", "Paladin", "Barbarian", "Druid", "Assassin"],
 		hostiles = [];
 
@@ -194,37 +194,20 @@ function main() {
 
 			if (hostiles.length > 0 && (Config.HostileAction === 0 || (Config.HostileAction === 1 && me.inTown))) {
 				if (Config.TownOnHostile) {
-					print("ÿc1Hostility detected, going to town.");
 					this.pause();
-
-					if (!me.inTown) {
-						outside = true;
-					}
-
-					try {
-						Town.goToTown();
-					} catch (e) {
-						print(e + " Failed to go to town. Quitting.");
-						scriptBroadcast("quit"); // quit if failed to go to town
-					}
+					Town.goToTown();
 
 					while (hostiles.length > 0) {
 						delay(500);
 					}
 
-					if (outside) {
-						outside = false;
-						Pather.usePortal(null, me.name);
-					}
-
+					Pather.usePortal(null, me.name);
 					this.resume();
 				} else {
 					scriptBroadcast("quit");
 				}
 
-				delay(500);
-
-				continue;
+				return;
 			}
 
 			// Mode 3 - Spam entrance (still experimental)
@@ -306,37 +289,20 @@ function main() {
 				// Mode 1 - Quit if hostile player is nearby
 				if (Config.HostileAction === 1) {
 					if (Config.TownOnHostile) {
-						print("ÿc1Hostile player nearby, going to town.");
 						this.pause();
-
-						if (!me.inTown) {
-							outside = true;
-						}
-
-						try {
-							Town.goToTown();
-						} catch (e) {
-							print(e + " Failed to go to town. Quitting.");
-							scriptBroadcast("quit"); // quit if failed to go to town
-						}
+						Town.goToTown();
 
 						while (hostiles.length > 0) {
 							delay(500);
 						}
 
-						if (outside) {
-							outside = false;
-							Pather.usePortal(null, me.name);
-						}
-
+						Pather.usePortal(null, me.name);
 						this.resume();
 					} else {
 						scriptBroadcast("quit");
 					}
 
-					delay(500);
-
-					continue;
+					return;
 				}
 
 				// Kill the hostile player
