@@ -171,11 +171,7 @@ var Pather = {
 	},
 
 	/*
-<<<<<<< HEAD
-		Pather.moveTo(x, y, retry, clearPath, pop, maneuvering);
-=======
 		Pather.moveTo(x, y, retry, clearPath, pop, actions);
->>>>>>> master
 		x - the x coord to path to
 		y - the y coord to path to
 		retry - the number of times to retry before aborting
@@ -184,11 +180,7 @@ var Pather = {
 		pop - removes the first path node before pathing
 
 	*/
-<<<<<<< HEAD
-	moveTo: function(x, y, retry, clearPath, pop, maneuvering) {
-=======
 	moveTo: function (x, y, retry, actions, pop) {
->>>>>>> master
 		//Validate Arguments
 		if (getDistance(me, x, y) < 2) {
 			return true;	//Don't bother if the distance is really close
@@ -196,18 +188,6 @@ var Pather = {
 
 		if (me.dead) {
 			return false;
-<<<<<<< HEAD
-		
-		if (x === undefined || y === undefined) 
-			throw new Error("Pather.moveTo: Function must be called with at least 2 arguments.");
-		
-		if (typeof x !== "number" || typeof y !== "number")
-			throw new Error("Pather.moveTo: Coords must be numbers");
-		
-		if (maneuvering === undefined)
-			maneuvering = false;
-		
-=======
 		}
 
 		if (x === undefined || y === undefined)	{
@@ -218,7 +198,6 @@ var Pather = {
 			throw new Error("Pather.moveTo: Coords must be numbers");
 		}
 
->>>>>>> master
 		var destination = {x: x, y: y},
 			useTeleport = this.useTeleport(),
 			//How far apart to make the pathing nodes.  Note this has no effect when walking.
@@ -348,24 +327,6 @@ var Pather = {
 		PathDebug.removeHooks();
 
 		return getDistance(me, destination.x, destination.y) < 5;
-<<<<<<< HEAD
-		
-	},
-	
-	/*
-		Pather.maneuverTo(x, y, retry, clearPath, pop);
-		Shortcut method for Pather.moveTo
-		Useful when the bot should move from point A to B without taking diversions (chests/shrines/etc)
-		
-	*/
-	maneuverTo: function(x, y, retry, clearPath, pop) {
-		//print("Maneuvering");
-		
-		return this.moveTo(x, y, retry, clearPath, pop, true);
-		
-=======
-
->>>>>>> master
 	},
 
 	closeUi: function () {
