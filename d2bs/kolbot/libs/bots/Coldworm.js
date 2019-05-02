@@ -36,6 +36,9 @@ function Coldworm() {
 		}
 
 		Attack.clear(15, 0, 284);
+
+		Chest.openChests(10);
+
 	}
 
 	return true;
