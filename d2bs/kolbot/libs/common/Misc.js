@@ -515,7 +515,12 @@ var Item = {
             return false;
         }
         
-        var merc = Mercenary.getMerc();
+				var merc = Mercenary.getMerc();
+
+				if (!merc) {
+					return false;
+				}
+
         var curr = this.getEquippedItemMerc(bodyLoc);
  
         if (item.getStat(92) > merc.getStat(12) || item.dexreq > merc.getStat(2) - curr.dex || item.strreq > merc.getStat(0)) { // Higher requirements
@@ -636,7 +641,12 @@ var Item = {
 	},
 
 	 getEquippedItemMerc: function (bodyLoc) {
-        var merc = Mercenary.getMerc();
+				var merc = Mercenary.getMerc();
+
+				if (!merc) {
+					return null;
+				}
+
         var item = merc.getItem();
  
         if (item) {
@@ -815,7 +825,7 @@ var Item = {
             return true;
         }
         
-        if (Config.AutoEquip && !Mercenary.hasMerc()) {
+        if (!Mercenary.hasMerc()) {
             return false;
         }
  
