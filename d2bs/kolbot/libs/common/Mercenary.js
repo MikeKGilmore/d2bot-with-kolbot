@@ -72,7 +72,7 @@ var Mercenary = {
 
 	hasMerc: function (mercType, variant) {
 		if (!Config.UseMerc) {
-			return true;	//We don't want a merc
+			return false;	//We don't want a merc
 		}
 
 		if (mercType === undefined) {
@@ -100,7 +100,7 @@ var Mercenary = {
 		var merc = this.getMerc();
 
 		if (!merc && (me.mercrevivecost === 0 || me.gametype === 0)) {
-			return true;	//We never had a merc
+			return false;	//We never had a merc
 		} else if (this.isDead()) {
 			return true;	//Merc is dead so we can't determine the variant or type
 		} else if (this.classIds[mercType] !== merc.classid) {
